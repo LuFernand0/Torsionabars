@@ -2,10 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from fractions import Fraction
+import os
+import utils
+
+# --- Criar pastas de saída ---
+folders = utils.prepare_subfolders("img", "tables", "graphs")  
 
 mass = []
 angle = []
-
 
 with open('data.txt', 'r') as file:
     for line in file:
@@ -15,8 +19,8 @@ with open('data.txt', 'r') as file:
         parts = line.split()
         if len(parts) >= 2:
             try:
-                m = float(parts[0]) / 1000  
-                a = np.deg2rad(float(parts[1])) 
+                m = float(parts[0]) / 1000
+                a = np.deg2rad(float(parts[1]))
                 mass.append(m)
                 angle.append(a)
             except ValueError:
@@ -54,13 +58,11 @@ def angle_to_pi_fraction(rad_value):
 
 plt.figure(figsize=(8, 5))
 markers = ["o", "s", "d"]
-lineStyle = [':', '--', '-.']
-
 
 for i in range(len(mass_groups)):
     x = mass_groups[i]
     y = angle_groups[i]
-    plt.plot(x, y, marker=f"{markers[i]}", markersize=8, linewidth=3, label=f'Barra {i+1}')
+    plt.plot(x, y, marker=markers[i], markersize=8, linewidth=3, label=f'Barra {i+1}')
 
 plt.xlabel("Massa (kg)")
 plt.ylabel("Ângulo (rad)")
@@ -68,17 +70,15 @@ plt.title("Massa vs Ângulo")
 plt.legend()
 plt.grid(True)
 
-# Ajuste do eixo Y em múltiplos de π (com frações simples)
 ax = plt.gca()
-y_max = np.pi/3
+y_max = np.pi / 3
 yticks = np.linspace(0, y_max, 5)
 ax.set_yticks(yticks)
 ax.set_yticklabels([angle_to_pi_fraction(r) for r in yticks])
 
-plt.savefig("img/grafico.png")
+plt.savefig(os.path.join(folders['graphs'], "grafico.png"))  # ✅ alterado para usar pasta 'grafico'
 print("✅ Gráfico exibido e salvo como grafico.png")
 plt.show()
-
 
 for i, (m, a) in enumerate(zip(mass_groups, angle_groups), start=1):
     frac_pi = [angle_to_pi_fraction(val) for val in a]
@@ -102,23 +102,21 @@ for i, (m, a) in enumerate(zip(mass_groups, angle_groups), start=1):
     table.scale(1, 1.2)
 
     plt.title(f"Barra {i}")
-    plt.savefig(f"img/table{i}.png", bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(folders['tables'], f"table{i}.png"), bbox_inches='tight', dpi=300)  # ✅ alterado para pasta 'tables'
     plt.close(fig)
 
 print("✅ tabelas salvas como table1.png, table2.png, table3.png ...")
 
 try:
     data2 = pd.read_csv('data2.txt', sep=r'\s+')
-
     data2.insert(0, "Barra", ["B1", "B2", "B3"])
 
     data_str = data2.copy()
     numeric_cols = data_str.select_dtypes(include=[np.number]).columns
     for col in numeric_cols:
-        data_str[col] = data_str[col].apply(lambda x: f"{x:.8g}") 
+        data_str[col] = data_str[col].apply(lambda x: f"{x:.8g}")
 
-
-    fig, ax = plt.subplots(figsize=(8, 2.5)) 
+    fig, ax = plt.subplots(figsize=(8, 2.5))
     ax.axis('off')
 
     table = ax.table(
@@ -130,10 +128,10 @@ try:
 
     table.auto_set_font_size(False)
     table.set_fontsize(9)
-    table.scale(1, 1.5) 
+    table.scale(1, 1.5)
 
     plt.title("Propriedades das Barras")
-    plt.savefig("img/tabela_barras.png", bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(folders['tables'], "tabela_barras.png"), bbox_inches='tight', dpi=300)  # ✅ alterado para pasta 'tables'
     plt.close(fig)
 
     print("✅ Tabela das barras salva como tabela_barras.png")
